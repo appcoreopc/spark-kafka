@@ -28,30 +28,12 @@ if __name__ == "__main__":
         .format("kafka")\
         .option("kafka.bootstrap.servers", bootstrapServers)\
         .option(subscribeType, topics)\
-        .load()\
-        .selectExpr("CAST(value AS STRING)")
+        .load()
+        #.selectExpr("CAST(value AS STRING)")
 
-    # Split the lines into words
-    words = lines.select(
-        # explode turns each item in an array into a separate row
-        explode(
-            split(lines.value, ' ')
-        ).alias('word')
-    )
+    query = lines.writeStream.outputMode("append").format("console").start()
 
-    print("Outputing what we get from our kafka queue")
-     
-    # Generate running word count
-    wordCounts = words.groupBy('word').count()
-
-    # Start running the query that prints the running counts to the console
-    query = wordCounts\
-        .writeStream\
-        .outputMode('complete')\
-        .format('console')\
-        .start()
-
-    #query.awaitTermination()
+    query.awaitTermination()
 
     
 
